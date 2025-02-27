@@ -11,21 +11,24 @@ namespace InvoiceExtractWebApi.Controllers
     public class InvoiceExtractController : ControllerBase
     {
         private readonly ILogger<InvoiceExtractController> _logger;
+        private readonly MongoDbService _mongoDbService;
 
-        public InvoiceExtractController(ILogger<InvoiceExtractController> logger)
+        public InvoiceExtractController(ILogger<InvoiceExtractController> logger, MongoDbService mongoDbService)
         {
             _logger = logger;
+            _mongoDbService = mongoDbService;
         }
 
         [HttpGet("")]
-        public IActionResult Index(string qrCodeParameter)
+        public async Task<IActionResult> Index(string qrCodeParameter)
         {
             /* Some examples URL's
             https://portalsped.fazenda.mg.gov.br/portalnfce/sistema/qrcode.xhtml?p=31250204641376021486650640001334691832214190|2|1|1|1308AB30650940E1EA488E7423E5898A8BF323BB
             https://portalsped.fazenda.mg.gov.br/portalnfce/sistema/qrcode.xhtml?p=31250204641376021486650660001283271808280606|2|1|1|A7DE2D334A70FFC1258D7CE336891397AF0A24E1
             https://portalsped.fazenda.mg.gov.br/portalnfce/sistema/qrcode.xhtml?p=31250204641376021486650680001118761253118381|2|1|1|E84ECC33F2A328B8ACE4B7EC12443FFCF968B3DE
-            */
-            
+            https://portalsped.fazenda.mg.gov.br/portalnfce/sistema/qrcode.xhtml?p=31250202582017000120650030005988831001862153|2|1|1|EB81D1AE4F0D2D13C18653869B3B7270E77762E2
+             */
+
             var url = $"https://portalsped.fazenda.mg.gov.br/portalnfce/sistema/qrcode.xhtml?p={qrCodeParameter}";
 
             var invoice = new Invoice();
@@ -54,6 +57,8 @@ namespace InvoiceExtractWebApi.Controllers
                 invoice.AccessKey = accessKey;
 
                 invoice.Items = InvoiceScraper.ExtractItems(urlResult);
+
+                await _mongoDbService.SaveInvoiceAsync(invoice);
             }
 
             return Ok(invoice);

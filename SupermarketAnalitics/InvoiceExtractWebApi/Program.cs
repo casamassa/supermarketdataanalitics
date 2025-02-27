@@ -1,7 +1,10 @@
+using InvoiceExtractWebApi.AppCode;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
+// Adiciona o MongoDbService como um Singleton
+builder.Services.AddSingleton<MongoDbService>();
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
