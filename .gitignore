@@ -1,0 +1,73 @@
+# Visual Studio e arquivos de build
+.vs/
+*.user
+*.suo
+*.cache
+*.pdb
+*.obj
+*.exe
+*.dll
+*.pdb
+*.ilk
+*.idb
+*.tlb
+*.tlh
+*.bak
+*.log
+*.aps
+*.ncb
+*.sdf
+*.opendb
+*.tlog
+*.lastbuildstate
+
+# Pastas de build
+bin/
+obj/
+TestResults/
+out/
+publish/
+
+# Pacotes NuGet
+*.nupkg
+packages/
+project.lock.json
+global.json
+.nuget/
+*.snupkg
+
+# Configurações de ambiente
+appsettings.*.json
+secrets.json
+.env
+
+# Arquivos gerados por usuários e IDEs
+*.csproj.user
+*.rsuser
+*.sln.docstates
+
+# Dados do Resharper
+_ReSharper*/
+*.DotSettings.user
+
+# Dados do Rider
+.idea/
+*.iml
+
+# Arquivos temporários
+*.tmp
+*.log
+*.cache
+*.~*
+
+# Diretórios de dependências
+node_modules/
+wwwroot/lib/
+
+# Arquivos específicos do Windows
+Thumbs.db
+Desktop.ini
+
+# Logs do sistema
+logs/
+*.log
