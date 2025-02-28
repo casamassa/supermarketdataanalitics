@@ -37,7 +37,7 @@ namespace InvoiceExtractWebApi.AppCode
                                 Description = descMatch.Groups[1].Value.Trim(),
                                 Code = descMatch.Groups[2].Value.Trim(),
                                 Quantity = decimal.Parse(quantityMatch.Groups[1].Value.Replace(",", ""), System.Globalization.CultureInfo.InvariantCulture),
-                                Unity = unitMatch.Groups[1].Value.Trim(),
+                                Unit = unitMatch.Groups[1].Value.Trim(),
                                 Value = decimal.Parse(valueMatch.Groups[1].Value.Replace(".", "").Replace(",", "."), System.Globalization.CultureInfo.InvariantCulture)
                             };
 
