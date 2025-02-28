@@ -1,0 +1,17 @@
+Crie o Ambiente Virtual No diretório do seu projeto (ou qualquer outro local), execute:
+python3.11 -m venv venv
+Isso criará um diretório chamado venv com o ambiente virtual.
+
+Ative o Ambiente Virtual Para ativar o ambiente virtual, use o comando:
+source venv/bin/activate (Linux e mac) ou venv\Scripts\activate (windows)
+Quando ativado, o prompt mudará e exibirá algo como (venv) antes do cursor.
+
+Desative o Ambiente Virtual Quando terminar, você pode sair do ambiente virtual com:
+deactivate
+
+Rodar o comando para instalar os pacotes listados no requirements.txt
+pip install -r requirements.txt
+
+Executar o Script no Ambiente Virtual Para garantir que o script use o ambiente virtual, ative o venv antes de rodar o script:
+venv\Scripts\activate
+python mongo_to_sql_server.py
