@@ -9,17 +9,20 @@ load_dotenv()
 TOKEN = os.getenv("TELEGRAM_TOKEN")
 
 logging.basicConfig(
-    filename='bot.log',  # Linha opcional, salva os logs em um arquivo chamado bot.log ao inves de exibir no console
+    #filename='bot.log',  # Linha opcional, salva os logs em um arquivo chamado bot.log ao inves de exibir no console
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', 
     level=logging.INFO
 )
 
 async def start(update, context): # Adicionado async
+    chat_id = update.effective_chat.id
+    logging.info(f"Comando /start recebido do chat_id: {chat_id}")
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Olá! Eu sou seu robo de Gastos de Mercado.")
 
 async def echo(update, context): # Adicionado async
+    chat_id = update.effective_chat.id
     mensagem = update.message.text
-    logging.info(f"Mensagem recebida: {mensagem}")  # Registra a mensagem recebida
+    logging.info(f"Mensagem recebida do chat_id {chat_id}: {mensagem}")
     if "ola" in mensagem.lower():
         resposta = "Olá! Como posso ajudar?"
     elif "como vai" in mensagem.lower():
@@ -27,6 +30,7 @@ async def echo(update, context): # Adicionado async
     else:
         resposta = f"Voce disse: {mensagem}"
     logging.info(f"Resposta: {resposta}")  # Registra a mensagem recebida
+    logging.info(f"Resposta ao chat_id {chat_id}: {resposta}")
     await context.bot.send_message(chat_id=update.effective_chat.id, text=resposta)
 
 def main():
