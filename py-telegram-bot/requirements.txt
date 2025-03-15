@@ -1,2 +1,6 @@
 dotenv
 python-telegram-bot
+pymongo
+dotenv
+langchain
+langchain-groq
