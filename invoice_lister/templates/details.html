@@ -3,95 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {# Define um título dinâmico se a invoice for encontrada #}
     <title>Detalhes da Nota Fiscal - {{ invoice.MarketName if invoice else 'Não encontrada' }}</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <style>
-        body { font-family: sans-serif; line-height: 1.6; margin: 20px; background-color: #f4f4f4; }
-        h1, h3, h4 { color: #333; }
-        .container { max-width: 800px; margin: 20px auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        .error { color: red; font-weight: bold; border: 1px solid red; padding: 10px; margin-bottom: 15px; background-color: #ffebeb; }
-        .invoice-card { border: 1px solid #ccc; margin-bottom: 15px; padding: 15px; border-radius: 5px; background-color: #fff; } /* Pode remover se usar container */
-        .invoice-items ul { list-style: none; padding-left: 0; }
-        .invoice-items li { border-bottom: 1px dashed #eee; padding-bottom: 8px; margin-bottom: 8px; }
-        .invoice-items li:last-child { border-bottom: none; }
-        .label { font-weight: bold; display: inline-block; min-width: 120px; color: #555;}
-        pre { background-color: #eee; padding: 10px; border-radius: 4px; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;}
-        a.back-link { display: inline-block; margin-bottom: 20px; color: #007bff; text-decoration: none; }
-        a.back-link:hover { text-decoration: underline; }
-        p { margin: 8px 0; }
+        body { padding-top: 1rem; padding-bottom: 1rem; background-color: #f8f9fa; }
+        .container { max-width: 960px; }
+        .card { margin-bottom: 1.5rem; }
+        .card-header { background-color: #e9ecef; }
+        .dl-horizontal dt { float: left; width: 160px; overflow: hidden; clear: left; text-align: right; text-overflow: ellipsis; white-space: nowrap; font-weight: bold; margin-bottom: 0.5rem;}
+        .dl-horizontal dd { margin-left: 180px; margin-bottom: 0.5rem;}
+        .item-list li { padding: 0.75rem 1rem; border-bottom: 1px solid #dee2e6; }
+        .item-list li:last-child { border-bottom: none; }
+        .item-list .label { font-weight: 600; color: #495057; min-width: 100px; display: inline-block;}
+        pre { background-color: #e9ecef; padding: 10px; border-radius: 4px; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word; border: 1px solid #ced4da;}
     </style>
 </head>
 <body>
     <div class="container">
-        {# Link para voltar para a lista #}
-        <a href="{{ url_for('index') }}" class="back-link">« Voltar para a lista</a>
-
-        <h1>Detalhes da Nota Fiscal</h1>
+        <a href="{{ url_for('index') }}" class="btn btn-secondary mb-3">« Voltar para a lista</a>
 
         {% if error %}
-            <div class="error">
+            <div class="alert alert-danger" role="alert">
                 <strong>Erro:</strong> {{ error }}
             </div>
         {% endif %}
 
-        {# Verifica se a variável 'invoice' existe (foi passada pelo Flask) #}
         {% if invoice %}
-            {# Removido o .invoice-card extra, o container já faz o papel #}
-            <h3>{{ invoice.MarketName }}</h3>
-            <p><span class="label">ID:</span> {{ invoice._id['$oid'] }}</p>
-            <p><span class="label">Data da Nota:</span>
-               {% if invoice.InvoiceDate and invoice.InvoiceDate['$date'] %}
-                   {{ invoice.InvoiceDate['$date'][:19] | replace('T', ' ') }} {# Formato YYYY-MM-DD HH:MM:SS #}
-               {% else %}
-                   Data Indisponível
-               {% endif %}
-            </p>
-            <p><span class="label">Total da Nota:</span> R$
-               {% if invoice.TotalInvoice and invoice.TotalInvoice['$numberDecimal'] %}
-                   {{ invoice.TotalInvoice['$numberDecimal'] }}
-               {% else %}
-                   Valor Indisponível
-               {% endif %}
-            </p>
-            <p><span class="label">Qtd. Total Itens:</span> {{ invoice.QuantityTotalItems }}</p>
-            <div>
-                <span class="label">Chave de Acesso:</span>
-                <pre>{{ invoice.AccessKey }}</pre>
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0">{{ invoice.MarketName }}</h3>
+                </div>
+                <div class="card-body">
+                    <dl class="dl-horizontal">
+                        <dt>ID:</dt>
+                        <dd>{{ invoice._id['$oid'] }}</dd>
+
+                        <dt>Data da Nota:</dt>
+                        <dd>{% if invoice.InvoiceDate and invoice.InvoiceDate['$date'] %}{{ invoice.InvoiceDate['$date'][:19] | replace('T', ' ') }}{% else %}Data Indisponível{% endif %}</dd>
+
+                        <dt>Total da Nota:</dt>
+                        <dd>R$ {% if invoice.TotalInvoice and invoice.TotalInvoice['$numberDecimal'] %}{{ invoice.TotalInvoice['$numberDecimal'] }}{% else %}Valor Indisponível{% endif %}</dd>
+
+                        <dt>Qtd. Total Itens:</dt>
+                        <dd>{{ invoice.QuantityTotalItems }}</dd>
+
+                        <dt>Chave de Acesso:</dt>
+                        <dd><pre>{{ invoice.AccessKey }}</pre></dd>
+                    </dl>
+                </div>
             </div>
 
-            <h4>Itens:</h4>
-            {% if invoice.Items %}
-                <div class="invoice-items">
-                    <ul>
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Itens da Nota</h4>
+                </div>
+                {% if invoice.Items %}
+                    <ul class="list-group list-group-flush item-list">
                         {% for item in invoice.Items %}
-                            <li>
-                                <span class="label">Cód:</span> {{ item.Code }}<br>
-                                <span class="label">Desc:</span> {{ item.Description }}<br>
-                                <span class="label">Qtd:</span>
-                                {% if item.Quantity and item.Quantity['$numberDecimal'] %}
-                                    {{ item.Quantity['$numberDecimal'] }}
-                                {% else %}
-                                    N/A
-                                {% endif %}
-                                {{ item.Unit }}<br>
-                                <span class="label">Valor Total Item:</span> R$
-                                {% if item.Value and item.Value['$numberDecimal'] %}
-                                    {{ item.Value['$numberDecimal'] }}
-                                {% else %}
-                                    N/A
-                                {% endif %}
+                            <li class="list-group-item">
+                                <div><span class="label">Código:</span> {{ item.Code }}</div>
+                                <div><span class="label">Descrição:</span> {{ item.Description }}</div>
+                                <div>
+                                    <span class="label">Quantidade:</span>
+                                    {% if item.Quantity and item.Quantity['$numberDecimal'] %}{{ item.Quantity['$numberDecimal'] }}{% else %}N/A{% endif %}
+                                    {{ item.Unit }}
+                                </div>
+                                <div>
+                                    <span class="label">Valor Total:</span> R$
+                                    {% if item.Value and item.Value['$numberDecimal'] %}{{ item.Value['$numberDecimal'] }}{% else %}N/A{% endif %}
+                                </div>
                             </li>
                         {% endfor %}
                     </ul>
-                </div>
-            {% else %}
-                <p>Nenhum item encontrado nesta nota.</p>
-            {% endif %}
+                {% else %}
+                    <div class="card-body">
+                        <p class="card-text">Nenhum item encontrado nesta nota.</p>
+                    </div>
+                {% endif %}
+            </div>
 
-        {% elif not error %} 
-            {# Se 'invoice' não existe e não houve erro explícito, mostra msg padrão #}
-            <p>Detalhes da nota fiscal não encontrados.</p>
+        {% elif not error %}
+            <div class="alert alert-warning" role="alert">
+                Detalhes da nota fiscal não encontrados.
+            </div>
         {% endif %}
-    </div>
+
+    </div><!-- Fim container -->
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>
 </html>
