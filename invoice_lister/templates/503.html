@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Erro 503 - Serviço Indisponível</title>
+    <style> body { font-family: sans-serif; padding: 20px; } .container { max-width: 600px; margin: 50px auto; text-align: center; } h1 { color: #ffc107; } </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Serviço Indisponível (Erro 503)</h1>
+        <p>{{ error_description | default('O servidor não está pronto para lidar com a solicitação. Tente novamente mais tarde.') }}</p>
+        <p><a href="{{ url_for('index') }}">Voltar para a página inicial</a></p>
+    </div>
+</body>
+</html>

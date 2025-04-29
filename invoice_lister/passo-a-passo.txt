@@ -1,0 +1,17 @@
+Abra o terminal ou prompt de comando.
+Navegue até o diretório invoice_lister.
+(Opcional, mas recomendado) Crie e ative um ambiente virtual:
+python -m venv venv
+No Windows: .\venv\Scripts\activate
+
+Instale as dependências:
+pip install -r requirements.txt
+
+Passo 5: Executar a Aplicação
+Certifique-se de que seu servidor MongoDB local esteja rodando na porta 27017.
+Verifique se você tem o banco InvoicesDB e a collection Invoices com dados.
+No terminal, dentro do diretório invoice_lister (e com o ambiente virtual ativado, se estiver usando um), execute:
+python app.py
+Abra seu navegador web e acesse: http://127.0.0.1:5000/ ou http://localhost:5000/
+Você deverá ver uma página listando suas notas fiscais, formatadas de forma legível. Se houver algum problema de conexão ou busca, a mensagem de erro correspondente será exibida.
+

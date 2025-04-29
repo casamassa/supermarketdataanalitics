@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {# Define um título dinâmico se a invoice for encontrada #}
+    <title>Detalhes da Nota Fiscal - {{ invoice.MarketName if invoice else 'Não encontrada' }}</title>
+    <style>
+        body { font-family: sans-serif; line-height: 1.6; margin: 20px; background-color: #f4f4f4; }
+        h1, h3, h4 { color: #333; }
+        .container { max-width: 800px; margin: 20px auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .error { color: red; font-weight: bold; border: 1px solid red; padding: 10px; margin-bottom: 15px; background-color: #ffebeb; }
+        .invoice-card { border: 1px solid #ccc; margin-bottom: 15px; padding: 15px; border-radius: 5px; background-color: #fff; } /* Pode remover se usar container */
+        .invoice-items ul { list-style: none; padding-left: 0; }
+        .invoice-items li { border-bottom: 1px dashed #eee; padding-bottom: 8px; margin-bottom: 8px; }
+        .invoice-items li:last-child { border-bottom: none; }
+        .label { font-weight: bold; display: inline-block; min-width: 120px; color: #555;}
+        pre { background-color: #eee; padding: 10px; border-radius: 4px; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;}
+        a.back-link { display: inline-block; margin-bottom: 20px; color: #007bff; text-decoration: none; }
+        a.back-link:hover { text-decoration: underline; }
+        p { margin: 8px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        {# Link para voltar para a lista #}
+        <a href="{{ url_for('index') }}" class="back-link">« Voltar para a lista</a>
+
+        <h1>Detalhes da Nota Fiscal</h1>
+
+        {% if error %}
+            <div class="error">
+                <strong>Erro:</strong> {{ error }}
+            </div>
+        {% endif %}
+
+        {# Verifica se a variável 'invoice' existe (foi passada pelo Flask) #}
+        {% if invoice %}
+            {# Removido o .invoice-card extra, o container já faz o papel #}
+            <h3>{{ invoice.MarketName }}</h3>
+            <p><span class="label">ID:</span> {{ invoice._id['$oid'] }}</p>
+            <p><span class="label">Data da Nota:</span>
+               {% if invoice.InvoiceDate and invoice.InvoiceDate['$date'] %}
+                   {{ invoice.InvoiceDate['$date'][:19] | replace('T', ' ') }} {# Formato YYYY-MM-DD HH:MM:SS #}
+               {% else %}
+                   Data Indisponível
+               {% endif %}
+            </p>
+            <p><span class="label">Total da Nota:</span> R$
+               {% if invoice.TotalInvoice and invoice.TotalInvoice['$numberDecimal'] %}
+                   {{ invoice.TotalInvoice['$numberDecimal'] }}
+               {% else %}
+                   Valor Indisponível
+               {% endif %}
+            </p>
+            <p><span class="label">Qtd. Total Itens:</span> {{ invoice.QuantityTotalItems }}</p>
+            <div>
+                <span class="label">Chave de Acesso:</span>
+                <pre>{{ invoice.AccessKey }}</pre>
+            </div>
+
+            <h4>Itens:</h4>
+            {% if invoice.Items %}
+                <div class="invoice-items">
+                    <ul>
+                        {% for item in invoice.Items %}
+                            <li>
+                                <span class="label">Cód:</span> {{ item.Code }}<br>
+                                <span class="label">Desc:</span> {{ item.Description }}<br>
+                                <span class="label">Qtd:</span>
+                                {% if item.Quantity and item.Quantity['$numberDecimal'] %}
+                                    {{ item.Quantity['$numberDecimal'] }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                                {{ item.Unit }}<br>
+                                <span class="label">Valor Total Item:</span> R$
+                                {% if item.Value and item.Value['$numberDecimal'] %}
+                                    {{ item.Value['$numberDecimal'] }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% else %}
+                <p>Nenhum item encontrado nesta nota.</p>
+            {% endif %}
+
+        {% elif not error %} 
+            {# Se 'invoice' não existe e não houve erro explícito, mostra msg padrão #}
+            <p>Detalhes da nota fiscal não encontrados.</p>
+        {% endif %}
+    </div>
+</body>
+</html>

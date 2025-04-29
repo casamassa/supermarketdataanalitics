@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resumo das Notas Fiscais (Página {{ pagination.page }})</title>
+    <style>
+        /* --- ESTILOS RESTAURADOS E COMBINADOS --- */
+        body { font-family: sans-serif; line-height: 1.6; margin: 20px; background-color: #f8f9fa; color: #212529; }
+        h1 { color: #343a40; border-bottom: 2px solid #dee2e6; padding-bottom: 10px; margin-bottom: 20px;}
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); background-color: #fff; }
+        th, td { border: 1px solid #dee2e6; padding: 12px 15px; text-align: left; vertical-align: middle;}
+        th { background-color: #e9ecef; font-weight: bold; color: #495057; }
+        tr:nth-child(even) { background-color: #f8f9fa; }
+        tr:hover { background-color: #f1f1f1; }
+        .error { color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; padding: 15px; margin-bottom: 20px; border-radius: 4px; }
+        a { color: #007bff; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .actions-cell { text-align: center; white-space: nowrap; }
+        .info-bar {
+             margin-top: 15px;
+             margin-bottom: 15px; /* Adicionado espaço abaixo */
+             color: #6c757d;
+             font-size: 0.95em;
+             display: flex; /* Usar flexbox para alinhar itens */
+             justify-content: space-between; /* Espaço entre texto e dropdown */
+             align-items: center; /* Alinhar verticalmente */
+             flex-wrap: wrap; /* Permitir quebra de linha em telas pequenas */
+             padding: 10px;
+             background-color: #e9ecef;
+             border-radius: 4px;
+        }
+        .info-bar span { margin-right: 10px; } /* Espaço à direita do texto */
+
+        /* Dropdown de itens por página */
+        .items-per-page-selector label { margin-right: 5px; font-weight: bold;}
+        .items-per-page-selector select {
+             padding: 5px 8px;
+             border: 1px solid #ced4da;
+             border-radius: 4px;
+             font-size: 0.9em;
+             cursor: pointer;
+        }
+
+        /* Estilos para Cabeçalhos Ordenáveis */
+        th a { color: inherit; text-decoration: none; display: block; position: relative; }
+        th a:hover { color: #0056b3; }
+        th a .sort-arrow { font-size: 0.8em; margin-left: 5px; display: inline-block; }
+
+        /* Estilos para Paginação */
+        .pagination { margin-top: 25px; text-align: center; padding-bottom: 20px;}
+        .pagination a, .pagination span {
+            display: inline-block;
+            padding: 8px 16px;
+            margin: 0 3px;
+            border: 1px solid #dee2e6;
+            color: #007bff;
+            background-color: #fff;
+            border-radius: 4px;
+            line-height: 1.4;
+            transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+        }
+        .pagination span.current {
+            background-color: #007bff;
+            color: white;
+            border-color: #007bff;
+            font-weight: bold;
+            cursor: default;
+        }
+        .pagination a:hover {
+            background-color: #e9ecef;
+            border-color: #adb5bd;
+            text-decoration: none;
+        }
+        .pagination span.disabled {
+            color: #6c757d;
+            background-color: #e9ecef;
+            border-color: #dee2e6;
+            cursor: not-allowed;
+        }
+        /* --- FIM DOS ESTILOS --- */
+    </style>
+</head>
+<body>
+    <div class="container"> {# Adicionando um container para melhor layout em telas maiores (opcional) #}
+        <h1>Resumo das Notas Fiscais</h1>
+
+        {# --- Barra de Informações com Dropdown --- #}
+        <div class="info-bar">
+            <span> {# Agrupa o texto de info da página #}
+                {% if pagination.total_items > 0 %}
+                    {% if pagination.limit == 0 %}
+                        Exibindo todas as {{ pagination.total_items }} notas
+                    {% else %}
+                        Exibindo página {{ pagination.page }} de {{ pagination.total_pages }}
+                        ({{ ((pagination.page - 1) * pagination.limit) + 1 }} - {{ min(pagination.page * pagination.limit, pagination.total_items) }} de {{ pagination.total_items }} notas)
+                    {% endif %}
+                    {% if pagination.sort_by %}
+                        | Ordenado por:
+                        {% if pagination.sort_by == 'date' %}Data{% elif pagination.sort_by == 'quantity' %}Qtd. Itens{% elif pagination.sort_by == 'total' %}Total{% endif %}
+                        ({{ 'Asc' if pagination.sort_order == 'asc' else 'Desc' }})
+                    {% endif %}
+                {% elif not error %}
+                    Nenhuma nota encontrada.
+                {% endif %}
+            </span>
+
+            {# Dropdown de Itens por Página (só mostra se houver itens) #}
+            {% if pagination.total_items > 0 %}
+            <div class="items-per-page-selector">
+                <label for="itemsPerPageSelect">Itens por página:</label>
+                <select id="itemsPerPageSelect" name="limit">
+                    <option value="10" {% if pagination.limit == 10 %}selected{% endif %}>10</option>
+                    <option value="25" {% if pagination.limit == 25 %}selected{% endif %}>25</option>
+                    <option value="50" {% if pagination.limit == 50 %}selected{% endif %}>50</option>
+                    <option value="100" {% if pagination.limit == 100 %}selected{% endif %}>100</option>
+                    <option value="0" {% if pagination.limit == 0 %}selected{% endif %}>Todos</option> {# 0 representa "Todos" #}
+                </select>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if error %}
+            <div class="error">
+                <strong>Erro:</strong> {{ error }}
+            </div>
+        {% endif %}
+
+        {% if invoices %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mercado</th>
+                        {# Cabeçalho Ordenável: Data #}
+                        <th>
+                            {% set next_order_date = 'asc' if pagination.sort_by == 'date' and pagination.sort_order == 'desc' else 'desc' %}
+                            {# Link atualizado para incluir 'limit' #}
+                            <a href="{{ url_for('index', page=pagination.page, sort_by='date', sort_order=next_order_date, limit=pagination.limit) }}">
+                                Data
+                                {% if pagination.sort_by == 'date' %}<span class="sort-arrow">{{ '▲' if pagination.sort_order == 'asc' else '▼' }}</span>{% endif %}
+                            </a>
+                        </th>
+                        {# Cabeçalho Ordenável: Qtd. Itens #}
+                        <th>
+                            {% set next_order_qty = 'desc' if pagination.sort_by == 'quantity' and pagination.sort_order == 'asc' else 'asc' %}
+                             {# Link atualizado para incluir 'limit' #}
+                            <a href="{{ url_for('index', page=pagination.page, sort_by='quantity', sort_order=next_order_qty, limit=pagination.limit) }}">
+                                Qtd. Itens
+                                {% if pagination.sort_by == 'quantity' %}<span class="sort-arrow">{{ '▲' if pagination.sort_order == 'asc' else '▼' }}</span>{% endif %}
+                            </a>
+                        </th>
+                        {# Cabeçalho Ordenável: Total (R$) #}
+                        <th>
+                            {% set next_order_total = 'desc' if pagination.sort_by == 'total' and pagination.sort_order == 'asc' else 'asc' %}
+                             {# Link atualizado para incluir 'limit' #}
+                            <a href="{{ url_for('index', page=pagination.page, sort_by='total', sort_order=next_order_total, limit=pagination.limit) }}">
+                                Total (R$)
+                                {% if pagination.sort_by == 'total' %}<span class="sort-arrow">{{ '▲' if pagination.sort_order == 'asc' else '▼' }}</span>{% endif %}
+                            </a>
+                        </th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for invoice in invoices %}
+                    <tr>
+                        <td>{{ invoice.MarketName }}</td>
+                        <td>{% if invoice.InvoiceDate and invoice.InvoiceDate['$date'] %}{{ invoice.InvoiceDate['$date'][:19] | replace('T', ' ') }}{% else %}N/A{% endif %}</td>
+                        <td>{{ invoice.QuantityTotalItems }}</td>
+                        <td>{% if invoice.TotalInvoice and invoice.TotalInvoice['$numberDecimal'] %}{{ invoice.TotalInvoice['$numberDecimal'] }}{% else %}N/A{% endif %}</td>
+                        <td class="actions-cell"><a href="{{ url_for('view_invoice', invoice_id=invoice._id['$oid']) }}">Detalhes</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            {# --- Controles de Paginação (Atualizados com sort e limit, só mostra se > 1 página) --- #}
+            {% if pagination.total_pages > 1 %}
+                <div class="pagination">
+                    {# Primeira #}
+                    {% if pagination.page > 1 %}
+                        <a href="{{ url_for('index', page=1, sort_by=pagination.sort_by, sort_order=pagination.sort_order, limit=pagination.limit) }}" title="Primeira Página">«« Primeira</a>
+                    {% else %}<span class="disabled">«« Primeira</span>{% endif %}
+
+                    {# Anterior #}
+                    {% if pagination.has_prev %}
+                        <a href="{{ url_for('index', page=pagination.page - 1, sort_by=pagination.sort_by, sort_order=pagination.sort_order, limit=pagination.limit) }}" title="Página Anterior">« Anterior</a>
+                    {% else %}<span class="disabled">« Anterior</span>{% endif %}
+
+                    {# Números de Página #}
+                    {% for p in pagination.page_numbers %}
+                        {% if p == pagination.page %}<span class="current">{{ p }}</span>
+                        {% else %}<a href="{{ url_for('index', page=p, sort_by=pagination.sort_by, sort_order=pagination.sort_order, limit=pagination.limit) }}">{{ p }}</a>{% endif %}
+                    {% endfor %}
+
+                    {# Próxima #}
+                    {% if pagination.has_next %}
+                        <a href="{{ url_for('index', page=pagination.page + 1, sort_by=pagination.sort_by, sort_order=pagination.sort_order, limit=pagination.limit) }}" title="Próxima Página">Próxima »</a>
+                    {% else %}<span class="disabled">Próxima »</span>{% endif %}
+
+                    {# Última #}
+                    {% if pagination.page < pagination.total_pages %}
+                        <a href="{{ url_for('index', page=pagination.total_pages, sort_by=pagination.sort_by, sort_order=pagination.sort_order, limit=pagination.limit) }}" title="Última Página">Última »»</a>
+                    {% else %}<span class="disabled">Última »»</span>{% endif %}
+                </div>
+            {% endif %} {# Fim do if pagination.total_pages > 1 #}
+
+        {% elif not error %}
+             <p style="text-align: center; margin-top: 20px;">Nenhuma nota fiscal encontrada na collection.</p>
+        {% endif %} {# Fim do if invoices #}
+
+    </div> {# Fim do container #}
+
+    {# --- Script para o Dropdown --- #}
+    <script>
+        document.getElementById('itemsPerPageSelect')?.addEventListener('change', function() {
+            const selectedLimit = this.value;
+            // Construir a URL base mantendo a ordenação atual, mas voltando para a página 1
+            const currentSortBy = '{{ pagination.sort_by | default(DEFAULT_SORT_BY) }}';
+            const currentSortOrder = '{{ pagination.sort_order | default(DEFAULT_SORT_ORDER) }}';
+            // Usamos encodeURIComponent para garantir que os valores sejam passados corretamente na URL
+            const url = `{{ url_for('index') }}?page=1&limit=${encodeURIComponent(selectedLimit)}&sort_by=${encodeURIComponent(currentSortBy)}&sort_order=${encodeURIComponent(currentSortOrder)}`;
+            window.location.href = url;
+        });
+    </script>
+
+</body>
+</html>

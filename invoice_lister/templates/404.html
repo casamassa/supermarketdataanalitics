@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Erro 404 - Não Encontrado</title>
+    <style> body { font-family: sans-serif; padding: 20px; } .container { max-width: 600px; margin: 50px auto; text-align: center; } h1 { color: #dc3545; } </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Oops! Recurso não encontrado (Erro 404)</h1>
+        <p>{{ error_description | default('A página ou o recurso que você está procurando não existe ou não foi encontrado.') }}</p>
+        <p><a href="{{ url_for('index') }}">Voltar para a página inicial</a></p>
+    </div>
+</body>
+</html>
