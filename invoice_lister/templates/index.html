@@ -24,12 +24,10 @@
     <div class="container">
         <h1 class="mb-4 border-bottom pb-2">Resumo das Notas Fiscais</h1>
 
-        {% if session.logged_in %}
         <div class="d-flex justify-content-end align-items-center mb-2">
-            <span class="me-2">Olá, {{ session.username }}!</span>
-            <a href="{{ url_for('logout') }}" class="btn btn-sm btn-outline-danger">Sair</a>
+            <span class="me-2">Olá, {{ username }}!</span>
+            <button type="button" class="btn btn-sm btn-outline-danger ms-2" onclick="logout()">Sair</button>
         </div>
-        {% endif %}
         <!-- Barra de Informações com Dropdown -->
         <div class="info-bar p-3 mb-3 d-flex flex-wrap justify-content-between align-items-center">
             <span class="me-3 mb-2 mb-md-0"> {# Texto de info #}
@@ -170,6 +168,56 @@
             const url = `{{ url_for('index') }}?page=1&limit=${encodeURIComponent(selectedLimit)}&sort_by=${encodeURIComponent(currentSortBy)}&sort_order=${encodeURIComponent(currentSortOrder)}`;
             window.location.href = url;
         });
+    </script>
+    <script>
+        // Função helper para ler um cookie pelo nome (pode reutilizar se já definida)
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    
+        async function logout() {
+            // Obtem o token CSRF do cookie (o nome padrão é 'csrf_access_token')
+            const csrfToken = getCookie('csrf_access_token');
+            try {
+                 const headers = {
+                    'Content-Type': 'application/json', // Embora sem corpo, é boa prática
+                 };
+                 // Adiciona o header CSRF se o token foi encontrado
+                 if (csrfToken) {
+                    headers['X-CSRF-TOKEN'] = csrfToken;
+                 }
+    
+                const response = await fetch('{{ url_for("api_logout") }}', {
+                    method: 'POST',
+                    headers: headers
+                });
+                if (response.ok) {
+                    window.location.href = '{{ url_for("login_page") }}'; // Redireciona para login
+                } else {
+                    // Tenta pegar msg de erro do backend, se houver
+                    let errorMsg = 'Erro ao tentar sair.';
+                    try {
+                        const data = await response.json();
+                        errorMsg = data.msg || errorMsg;
+                    } catch(e) { /* Ignora se não for JSON */}
+                    alert(errorMsg);
+                }
+            } catch (error) {
+                console.error('Erro no logout:', error);
+                alert('Erro de rede ao tentar sair.');
+            }
+        }
     </script>
 </body>
 </html>

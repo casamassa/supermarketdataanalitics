@@ -7,18 +7,8 @@
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <style>
-        body {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            background-color: #f8f9fa;
-        }
-        .login-card {
-            width: 100%;
-            max-width: 400px;
-            padding: 30px;
-        }
+        body { display: flex; align-items: center; justify-content: center; min-height: 100vh; background-color: #f8f9fa; }
+        .login-card { width: 100%; max-width: 400px; padding: 30px; }
     </style>
 </head>
 <body>
@@ -26,19 +16,23 @@
         <div class="card-body">
             <h3 class="card-title text-center mb-4">Acesso ao Sistema</h3>
 
-            {# Exibir mensagens flash (erros, sucesso) #}
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                            {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    {% endfor %}
-                {% endif %}
-            {% endwith %}
+             <!-- Div para exibir mensagens de erro/sucesso do JS e flash -->
+             <div id="message-area">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+             </div>
 
-            <form method="POST" action="{{ url_for('login', next=request.args.get('next')) }}">
+
+            <form id="loginForm">
+
                 <div class="mb-3">
                     <label for="username" class="form-label">Usuário</label>
                     <input type="text" class="form-control" id="username" name="username" required autofocus>
@@ -48,7 +42,10 @@
                     <input type="password" class="form-control" id="password" name="password" required>
                 </div>
                 <div class="d-grid">
-                    <button type="submit" class="btn btn-primary">Entrar</button>
+                    <button type="submit" class="btn btn-primary" id="loginButton">
+                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="loginSpinner"></span>
+                        Entrar
+                    </button>
                 </div>
             </form>
         </div>
@@ -56,5 +53,79 @@
 
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+    <script>
+        // Função helper para ler um cookie pelo nome
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        const loginForm = document.getElementById('loginForm');
+        const messageArea = document.getElementById('message-area');
+        const loginButton = document.getElementById('loginButton');
+        const loginSpinner = document.getElementById('loginSpinner');
+        // Obtem o token CSRF do cookie (o nome padrão é 'csrf_access_token')
+        const csrfToken = getCookie('csrf_access_token');
+
+
+        loginForm.addEventListener('submit', async (event) => {
+            event.preventDefault(); // Impede o envio tradicional do formulário
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const nextUrl = '{{ request.args.get("next", url_for("index")) }}'; // Pega a URL de redirecionamento
+
+            // Mostra o spinner e desabilita o botão
+            loginButton.disabled = true;
+            loginSpinner.classList.remove('d-none');
+            messageArea.innerHTML = ''; // Limpa mensagens antigas
+
+            try {
+                const headers = {
+                    'Content-Type': 'application/json',
+                };
+                // Adiciona o header CSRF se o token foi encontrado
+                if (csrfToken) {
+                    headers['X-CSRF-TOKEN'] = csrfToken;
+                }
+
+                const response = await fetch('{{ url_for("api_login") }}', {
+                    method: 'POST',
+                    headers: headers, // Usa os headers definidos
+                    body: JSON.stringify({ username: username, password: password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    messageArea.innerHTML = `<div class="alert alert-success" role="alert">${data.msg || 'Login bem-sucedido! Redirecionando...'}</div>`;
+                    // Pequeno delay para o usuário ver a msg antes de redirecionar
+                     setTimeout(() => { window.location.href = nextUrl; }, 500);
+                } else {
+                    messageArea.innerHTML = `<div class="alert alert-danger" role="alert">${data.msg || 'Erro no login.'}</div>`;
+                }
+
+            } catch (error) {
+                console.error('Erro na requisição de login:', error);
+                messageArea.innerHTML = `<div class="alert alert-danger" role="alert">Erro ao tentar conectar. Tente novamente.</div>`;
+            } finally {
+                // Esconde o spinner e reabilita o botão
+                loginButton.disabled = false;
+                loginSpinner.classList.add('d-none');
+            }
+        });
+    </script>
 </body>
 </html>
