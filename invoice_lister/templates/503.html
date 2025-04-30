@@ -18,7 +18,14 @@
         <p class="lead text-muted">
             {{ error_description | default('O servidor não pôde processar a solicitação no momento. Tente novamente mais tarde.') }}
         </p>
-        <a href="{{ url_for('index') }}" class="btn btn-primary mt-3">Tentar Voltar</a>
+        <div class="mt-3">
+            {% if session.logged_in %}
+                <a href="{{ url_for('index') }}" class="btn btn-primary">Página Inicial</a>
+                <a href="{{ url_for('logout') }}" class="btn btn-outline-secondary">Sair</a>
+            {% else %}
+                 <a href="{{ url_for('login') }}" class="btn btn-primary">Ir para Login</a>
+            {% endif %}
+        </div>
     </div>
 
      <!-- Bootstrap JS Bundle -->

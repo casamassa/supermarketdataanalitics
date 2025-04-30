@@ -24,6 +24,12 @@
     <div class="container">
         <h1 class="mb-4 border-bottom pb-2">Resumo das Notas Fiscais</h1>
 
+        {% if session.logged_in %}
+        <div class="d-flex justify-content-end align-items-center mb-2">
+            <span class="me-2">Olá, {{ session.username }}!</span>
+            <a href="{{ url_for('logout') }}" class="btn btn-sm btn-outline-danger">Sair</a>
+        </div>
+        {% endif %}
         <!-- Barra de Informações com Dropdown -->
         <div class="info-bar p-3 mb-3 d-flex flex-wrap justify-content-between align-items-center">
             <span class="me-3 mb-2 mb-md-0"> {# Texto de info #}

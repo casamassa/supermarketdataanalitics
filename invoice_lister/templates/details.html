@@ -21,7 +21,12 @@
 </head>
 <body>
     <div class="container">
-        <a href="{{ url_for('index') }}" class="btn btn-secondary mb-3">« Voltar para a lista</a>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <a href="{{ url_for('index') }}" class="btn btn-secondary">« Voltar para a lista</a>
+            {% if session.logged_in %}
+                <a href="{{ url_for('logout') }}" class="btn btn-sm btn-outline-danger">Sair</a>
+            {% endif %}
+       </div>
 
         {% if error %}
             <div class="alert alert-danger" role="alert">
