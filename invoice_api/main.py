@@ -267,33 +267,47 @@ async def save_invoice_to_db(invoice: Invoice):
         print("Aviso: Conexão com MongoDB não está disponível. Não foi possível salvar a nota.")
         return
 
-    if not invoice.access_key:
-        print("Aviso: Nota fiscal sem chave de acesso. Não será salva.")
+    # Garante que temos o objeto Pydantic e a chave de acesso (que é o atributo python)
+    if not invoice or not invoice.access_key:
+        print("AVISO [DB]: Nota fiscal inválida ou sem chave de acesso (atributo python). Não será salva.")
         return
 
+    access_key_value = invoice.access_key # Pega o valor da chave do objeto pydantic
+    db_field_name = "AccessKey" # Usa o nome do campo como está no MongoDB (o Alias)
+
     try:
-        # Verifica se a nota já existe usando a chave de acesso
-        existing_invoice = invoices_collection.find_one({"access_key": invoice.access_key})
+        # 1. Verifica se a nota já existe usando a chave de acesso
+        print(f"DEBUG [DB]: Verificando existência da chave: {invoice.access_key}") # Log adicional
+        #existing_invoice = invoices_collection.find_one({"access_key": invoice.access_key})
+        existing_invoice = invoices_collection.find_one({db_field_name: access_key_value})
 
+        # 2. Se NÃO existir (find_one retorna None), insere
         if existing_invoice is None:
-            # Converte o modelo Pydantic para dict antes de inserir
-            # exclude_none=True remove campos com valor None
-            # by_alias=True usa os aliases definidos (ex: '_id')
-            invoice_dict = invoice.model_dump(exclude_none=True, by_alias=True)
-            # Remove o campo 'id' se ele for None, pois o MongoDB gerará o _id
+            print(f"DEBUG [DB]: Chave {invoice.access_key} não encontrada. Preparando para inserir.") # Log adicional
+            # Converte o modelo Pydantic para dict ANTES de inserir
+            invoice_dict = invoice.model_dump(exclude_unset=True, by_alias=True) # exclude_unset é geralmente melhor que exclude_none
+            # Remove o campo 'id' se ele for None (o _id do Pydantic)
             if 'id' in invoice_dict and invoice_dict['id'] is None:
-                 del invoice_dict['id']
+                 del invoice_dict['id'] # MongoDB gerará _id
 
+            print(f"DEBUG [DB]: Inserindo documento: {list(invoice_dict.keys())}") # Log chaves a inserir
             result = invoices_collection.insert_one(invoice_dict)
-            print(f"Nota fiscal {invoice.access_key} salva com ID: {result.inserted_id}")
-            # Opcional: atualizar o ID no objeto invoice retornado (não feito no C# original)
-            # invoice.id = str(result.inserted_id)
+            print(f"SUCESSO [DB]: Nota fiscal {invoice.access_key} salva com ID: {result.inserted_id}")
+
+        # 3. Se JÁ existir, NÃO faz nada (apenas loga)
         else:
-            print(f"Nota fiscal {invoice.access_key} já existe no banco de dados.")
+            print(f"INFO [DB]: Nota fiscal com chave {invoice.access_key} já existe no banco de dados. Nenhuma ação realizada.")
 
     except OperationFailure as e:
-        # Pode acontecer se houver violação de índice único (concorrência)
-        print(f"Erro de operação no MongoDB ao salvar {invoice.access_key}: {e}")
+        # Pode acontecer se houver violação de índice único (concorrência, SE o índice existe)
+        print(f"ERRO [DB]: Erro de operação no MongoDB ao processar {invoice.access_key}: {e}")
+        # Se o erro for de chave duplicada (E11000), a lógica funcionou mas houve concorrência
+        if "E11000 duplicate key error" in str(e):
+             print("INFO [DB]: Erro de chave duplicada indica que a nota foi inserida por outra requisição concorrente.")
+    except Exception as e:
+        print(f"ERRO [DB]: Erro inesperado ao salvar no MongoDB {invoice.access_key}: {e}")
+        import traceback
+        print(traceback.format_exc())
     except Exception as e:
         print(f"Erro inesperado ao salvar no MongoDB {invoice.access_key}: {e}")
         # Considerar lançar uma exceção HTTP 500 aqui se o salvamento for crítico
