@@ -73,3 +73,5 @@ logs/
 *.log
 
 venv/
+__pycache__/
+
