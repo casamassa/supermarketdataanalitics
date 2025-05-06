@@ -7,3 +7,4 @@ lxml>=4.6.0 # Parser HTML recomendado para BeautifulSoup
 python-dotenv>=0.15.0
 python-dateutil>=2.8.0 # Para parse de datas flexível
 # Decimal é built-in do Python
+passlib[bcrypt]

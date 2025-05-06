@@ -1,0 +1,21 @@
+Abra o terminal ou prompt de comando.
+Navegue até o diretório
+Crie um ambiente virtual:
+python3.11 -m venv venv
+Ative um ambiente virtual:
+No Windows: .\venv\Scripts\activate
+Para desativar:
+No Windows: deactivate
+
+Instale as dependências:
+pip install -r requirements.txt
+
+Executar a Aplicação
+Certifique-se de que seu servidor MongoDB local esteja rodando na porta 27017.
+Verifique se você tem o banco InvoicesDB e a collection Invoices com dados.
+No terminal, dentro do diretório (e com o ambiente virtual ativado, se estiver usando um), execute:
+uvicorn main:app --reload
+
+Para testar chame a URL:
+http://127.0.0.1:8000/?qr_code_parameter=31250502582017000120650040004398351000781850|2|1|1|1D471D2EF704B0EE423B649C50B2EC089D9A113B
+
